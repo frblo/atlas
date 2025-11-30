@@ -1,37 +1,31 @@
 <script lang="ts">
-	import { Control, FeatureGroup, type Map } from 'leaflet';
-	import 'leaflet-draw';
+	import type { LatLngBoundsExpression, Map } from 'leaflet';
 	import { onMount, onDestroy } from 'svelte';
 
-	var mapElement;
+	let mapElement: HTMLElement;
 	var map: Map;
 
 	onMount(async () => {
 		const leaflet = await import('leaflet');
 
-		map = leaflet.map(mapElement).setView([51.505, -0.09], 13);
+		map = leaflet.map(mapElement, { crs: leaflet.CRS.Simple }).setView([51.505, -0.09], 13);
 
+		const bounds: LatLngBoundsExpression = [
+			[0, 0],
+			[607, 756]
+		];
 		leaflet
-			.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-				attribution:
-					'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-			})
+			.imageOverlay(
+				'https://upload.wikimedia.org/wikipedia/commons/b/bb/Mayor_of_London_constituency_results_2000.svg',
+				bounds
+			)
 			.addTo(map);
-		// FeatureGroup is to store editable layers
-		var drawnItems = new FeatureGroup();
-		map.addLayer(drawnItems);
-		var drawControl = new Control.Draw({
-			edit: {
-				featureGroup: drawnItems
-			}
-		});
-		map.addControl(drawControl);
-
-		// leaflet
-		// 	.marker([51.5, -0.09])
-		// 	.addTo(map)
-		// 	.bindPopup('A pretty CSS3 popup.<br> Easily customizable.')
-		// 	.openPopup();
+		map.fitBounds(bounds);
+		leaflet
+			.marker([51.5, -0.09])
+			.addTo(map)
+			.bindPopup('A pretty CSS3 popup.<br> Easily customizable.')
+			.openPopup();
 	});
 
 	onDestroy(async () => {
