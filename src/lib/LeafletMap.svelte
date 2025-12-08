@@ -27,12 +27,20 @@
 
 		map.fitBounds(bounds);
 
+		const myCustomIcon = L.icon({
+			iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/e/ec/RedDot.svg',
+			iconSize: [30, 30],
+			iconAnchor: [15, 15],
+			popupAnchor: [0, -15]
+		});
+
 		const EditControl = (L.Control as any).extend({
 			options: {
 				position: 'topleft',
 				callback: null,
 				kind: '',
-				html: ''
+				html: '',
+				toolOptions: null
 			},
 
 			onAdd: function (map: Map) {
@@ -42,7 +50,6 @@
 				link.href = '#';
 				link.title = 'Create a new ' + this.options.kind;
 				link.innerHTML = this.options.html;
-
 				link.style.display = 'flex';
 				link.style.alignItems = 'center';
 				link.style.justifyContent = 'center';
@@ -52,7 +59,7 @@
 					link,
 					'click',
 					function (this: any) {
-						this.options.callback.call((map as any).editTools);
+						this.options.callback.call((map as any).editTools, null, this.options.toolOptions);
 					},
 					this
 				);
@@ -61,12 +68,18 @@
 			}
 		});
 
-		const addControl = (kind: string, html: string, callbackName: string) => {
+		const addControl = (
+			kind: string,
+			html: string,
+			callbackName: string,
+			extraOptions: any = {}
+		) => {
 			const ControlClass = EditControl.extend({
 				options: {
 					kind: kind,
 					html: html,
-					callback: (map as any).editTools[callbackName]
+					callback: (map as any).editTools[callbackName],
+					toolOptions: extraOptions
 				}
 			});
 			map.addControl(new ControlClass());
@@ -74,6 +87,12 @@
 
 		addControl('marker', '🖈', 'startMarker');
 		addControl('circle', '⬤', 'startCircle');
+		addControl(
+			'marker2',
+			'<img src="https://upload.wikimedia.org/wikipedia/commons/e/ec/RedDot.svg">',
+			'startMarker',
+			{ icon: myCustomIcon }
+		);
 	});
 
 	onDestroy(async () => {
@@ -90,7 +109,7 @@
 
 <style>
 	main div {
-		height: 500px;
+		height: 800px;
 		width: 100%;
 	}
 
