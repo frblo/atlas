@@ -6,6 +6,67 @@
 	let mapElement: HTMLElement;
 	let map: Map;
 
+	const createPopupContent = (L: any, layer: any, text: string, isEditMode: boolean) => {
+		const container = L.DomUtil.create('div');
+
+		// Stop clicks inside this container from closing the popup
+		L.DomEvent.disableClickPropagation(container);
+		L.DomEvent.disableScrollPropagation(container);
+
+		if (isEditMode) {
+			const textarea = L.DomUtil.create('textarea', '', container);
+			textarea.style.width = '200px';
+			textarea.style.height = '100px';
+			textarea.style.marginBottom = '5px';
+			textarea.style.fontFamily = 'inherit';
+			textarea.value = text;
+			textarea.placeholder = 'Placeholder...';
+
+			// Focus the cursor automatically
+			setTimeout(() => {
+				textarea.focus();
+			}, 50);
+
+			const btnContainer = L.DomUtil.create('div', '', container);
+			const saveBtn = L.DomUtil.create('button', '', btnContainer);
+			saveBtn.innerHTML = 'Save';
+			saveBtn.style.marginRight = '5px';
+
+			L.DomEvent.on(saveBtn, 'click', (e: any) => {
+				L.DomEvent.stop(e);
+				const newText = textarea.value;
+				(layer as any)._customText = newText;
+				layer.setPopupContent(createPopupContent(L, layer, newText, false));
+			});
+
+			const cancelBtn = L.DomUtil.create('button', '', btnContainer);
+			cancelBtn.innerHTML = 'Cancel';
+
+			L.DomEvent.on(cancelBtn, 'click', (e: any) => {
+				L.DomEvent.stop(e);
+				const oldText = (layer as any)._customText || '';
+				layer.setPopupContent(createPopupContent(L, layer, oldText, false));
+			});
+		} else {
+			const textDiv = L.DomUtil.create('div', '', container);
+			textDiv.style.whiteSpace = 'pre-wrap';
+			textDiv.style.minWidth = '150px';
+			textDiv.innerHTML = text || '(No text)';
+
+			const editBtn = L.DomUtil.create('button', '', container);
+			editBtn.innerHTML = 'Edit';
+			editBtn.style.marginTop = '10px';
+			editBtn.style.fontSize = '12px';
+
+			L.DomEvent.on(editBtn, 'click', (e: any) => {
+				L.DomEvent.stop(e);
+				layer.setPopupContent(createPopupContent(L, layer, text, true));
+			});
+		}
+
+		return container;
+	};
+
 	onMount(async () => {
 		const L = await import('leaflet');
 		await import('leaflet-editable');
@@ -34,27 +95,24 @@
 			popupAnchor: [0, -15]
 		});
 
-		const EditControl = (L.Control as any).extend({
-			options: {
-				position: 'topleft',
-				callback: null,
-				kind: '',
-				html: '',
-				toolOptions: null
-			},
+		map.on('editable:drawing:commit', (e: any) => {
+			const layer = e.layer;
+			const content = createPopupContent(L, layer, '', true);
+			layer.bindPopup(content).openPopup();
+		});
 
+		const EditControl = (L.Control as any).extend({
+			options: { position: 'topleft', callback: null, kind: '', html: '', toolOptions: null },
 			onAdd: function (map: Map) {
 				const container = L.DomUtil.create('div', 'leaflet-control leaflet-bar');
 				const link = L.DomUtil.create('a', '', container);
-
 				link.href = '#';
-				link.title = 'Create a new ' + this.options.kind;
+				link.title = this.options.kind;
 				link.innerHTML = this.options.html;
 				link.style.display = 'flex';
 				link.style.alignItems = 'center';
 				link.style.justifyContent = 'center';
 				link.style.fontSize = '14px';
-
 				L.DomEvent.on(link, 'click', L.DomEvent.stop).on(
 					link,
 					'click',
@@ -63,7 +121,6 @@
 					},
 					this
 				);
-
 				return container;
 			}
 		});
@@ -76,8 +133,8 @@
 		) => {
 			const ControlClass = EditControl.extend({
 				options: {
-					kind: kind,
-					html: html,
+					kind,
+					html,
 					callback: (map as any).editTools[callbackName],
 					toolOptions: extraOptions
 				}
@@ -89,7 +146,7 @@
 		addControl('circle', '⬤', 'startCircle');
 		addControl(
 			'marker2',
-			'<img src="https://upload.wikimedia.org/wikipedia/commons/e/ec/RedDot.svg">',
+			'<img src="https://upload.wikimedia.org/wikipedia/commons/e/ec/RedDot.svg" style="width:12px">',
 			'startMarker',
 			{ icon: myCustomIcon }
 		);
@@ -97,7 +154,6 @@
 
 	onDestroy(async () => {
 		if (map) {
-			console.log('Unloading Leaflet map.');
 			map.remove();
 		}
 	});
@@ -111,11 +167,18 @@
 	main div {
 		height: 800px;
 		width: 100%;
+		background-color: #eee;
 	}
 
 	:global(.leaflet-bar a) {
 		text-decoration: none;
 		cursor: pointer;
 		color: black;
+	}
+
+	:global(.leaflet-popup-content textarea) {
+		resize: vertical;
+		padding: 5px;
+		border: 1px solid #ccc;
 	}
 </style>
