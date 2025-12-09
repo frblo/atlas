@@ -41,11 +41,22 @@
 
 			const cancelBtn = L.DomUtil.create('button', '', btnContainer);
 			cancelBtn.innerHTML = 'Cancel';
+			cancelBtn.style.marginRight = '5px';
 
 			L.DomEvent.on(cancelBtn, 'click', (e: any) => {
 				L.DomEvent.stop(e);
 				const oldText = (layer as any)._customText || '';
 				layer.setPopupContent(createPopupContent(L, layer, oldText, false));
+			});
+
+			const deleteBtn = L.DomUtil.create('button', '', btnContainer);
+			deleteBtn.innerHTML = 'Delete';
+
+			L.DomEvent.on(deleteBtn, 'click', (e: any) => {
+				L.DomEvent.stop(e);
+				if (layer) {
+					map.removeLayer(layer);
+				}
 			});
 		} else {
 			const textDiv = L.DomUtil.create('div', '', container);
