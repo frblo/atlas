@@ -8,6 +8,7 @@
 
 	const RED_DOT_URL = 'https://upload.wikimedia.org/wikipedia/commons/e/ec/RedDot.svg';
 	export let MAP_URL;
+	let ABSOLUTE_MAP_URL = '../../../../data/maps/' + MAP_URL;
 
 	const getMapBounds = (url: string): Promise<{ width: number; height: number }> => {
 		return new Promise((resolve, reject) => {
@@ -84,7 +85,7 @@
 		const L = await import('leaflet');
 		await import('leaflet-editable');
 
-		const { width, height } = await getMapBounds(MAP_URL);
+		const { width, height } = await getMapBounds(ABSOLUTE_MAP_URL);
 
 		const bounds: LatLngBoundsExpression = [
 			[0, 0],
@@ -96,7 +97,7 @@
 			crs: L.CRS.Simple
 		});
 
-		L.imageOverlay(MAP_URL, bounds).addTo(map);
+		L.imageOverlay(ABSOLUTE_MAP_URL, bounds).addTo(map);
 
 		map.fitBounds(bounds);
 
@@ -140,11 +141,10 @@
 		};
 
 		// Import from JSON
-		const loadFromDatabase = async () => {
-			// Temporary local storage
-			const raw = localStorage.getItem('geojson-demo-data');
+		const loadConfig = async () => {
+			const raw = await fetch('/data/configs/' + MAP_URL + '.json');
 			if (!raw) return;
-			const data = JSON.parse(raw);
+			const data = await raw.json();
 
 			L.geoJSON(data, {
 				pointToLayer: (feature, latlng) => {
@@ -166,6 +166,8 @@
 				}
 			});
 		};
+
+		await loadConfig();
 
 		map.on('editable:drawing:commit', (e: any) => {
 			const layer = e.layer;

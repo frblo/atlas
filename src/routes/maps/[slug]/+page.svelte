@@ -5,5 +5,5 @@
 
 <main>
 	<h1>{data.slug}</h1>
-	<LeafletMap MAP_URL="../../../../data/maps/{data.slug}" />
+	<LeafletMap MAP_URL={data.slug} />
 </main>
