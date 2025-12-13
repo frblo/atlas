@@ -7,6 +7,17 @@
 	let map: Map;
 
 	const RED_DOT_URL = 'https://upload.wikimedia.org/wikipedia/commons/e/ec/RedDot.svg';
+	const MAP_URL =
+		'https://upload.wikimedia.org/wikipedia/commons/b/bb/Mayor_of_London_constituency_results_2000.svg';
+
+	const getMapBounds = (url: string): Promise<{ width: number; height: number }> => {
+		return new Promise((resolve, reject) => {
+			const img = new Image();
+			img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+			img.onerror = (err) => reject(err);
+			img.src = url;
+		});
+	};
 
 	// Manage the marker popup content
 	const createPopupContent = (L: any, layer: any, text: string, isEditMode: boolean) => {
@@ -74,20 +85,19 @@
 		const L = await import('leaflet');
 		await import('leaflet-editable');
 
+		const { width, height } = await getMapBounds(MAP_URL);
+
 		const bounds: LatLngBoundsExpression = [
 			[0, 0],
-			[607, 756]
+			[height, width]
 		];
 
 		map = L.map(mapElement, {
 			editable: true,
 			crs: L.CRS.Simple
-		}).setView([300, 378], 0);
+		});
 
-		L.imageOverlay(
-			'https://upload.wikimedia.org/wikipedia/commons/b/bb/Mayor_of_London_constituency_results_2000.svg',
-			bounds
-		).addTo(map);
+		L.imageOverlay(MAP_URL, bounds).addTo(map);
 
 		map.fitBounds(bounds);
 
