@@ -1,7 +1,6 @@
 <script lang="ts">
-	import LeafletMap from '$lib/LeafletMap.svelte';
 </script>
 
 <main>
-	<LeafletMap />
+	<h1>Atlas</h1>
 </main>

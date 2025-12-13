@@ -7,8 +7,7 @@
 	let map: Map;
 
 	const RED_DOT_URL = 'https://upload.wikimedia.org/wikipedia/commons/e/ec/RedDot.svg';
-	const MAP_URL =
-		'https://upload.wikimedia.org/wikipedia/commons/b/bb/Mayor_of_London_constituency_results_2000.svg';
+	export let MAP_URL;
 
 	const getMapBounds = (url: string): Promise<{ width: number; height: number }> => {
 		return new Promise((resolve, reject) => {
@@ -89,7 +88,7 @@
 
 		const bounds: LatLngBoundsExpression = [
 			[0, 0],
-			[height, width]
+			[height / 10, width / 10]
 		];
 
 		map = L.map(mapElement, {

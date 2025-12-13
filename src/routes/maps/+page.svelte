@@ -3,7 +3,7 @@
 	export let form;
 </script>
 
-<h1>Map Manager</h1>
+<h1>Upload map</h1>
 
 <form method="POST" enctype="multipart/form-data">
 	<input type="file" name="file" required />
