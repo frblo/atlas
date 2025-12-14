@@ -6,9 +6,27 @@
 	let mapElement: HTMLElement;
 	let map: Map;
 
-	const RED_DOT_URL = 'https://upload.wikimedia.org/wikipedia/commons/e/ec/RedDot.svg';
 	export let MAP_URL: string;
 	let ABSOLUTE_MAP_URL = '/data/maps/' + MAP_URL;
+
+	const DEFAULT_MARKER = '/src/lib/assets/default_marker.svg';
+
+	let currentMarkerIconUrl: string = DEFAULT_MARKER;
+	let currentMarkerIcon: any = null;
+
+	function customIcon(L: any, iconUrl: string) {
+		return L.icon({
+			iconUrl: iconUrl,
+			iconSize: [30, 30],
+			iconAnchor: [15, 15],
+			popupAnchor: [0, -15]
+		});
+	}
+
+	const setCurrentIcon = (L: any, iconUrl: string) => {
+		currentMarkerIconUrl = iconUrl;
+		currentMarkerIcon = customIcon(L, iconUrl);
+	};
 
 	const getMapBounds = (url: string): Promise<{ width: number; height: number }> => {
 		return new Promise((resolve, reject) => {
@@ -89,7 +107,7 @@
 
 		const bounds: LatLngBoundsExpression = [
 			[0, 0],
-			[height / 10, width / 10]
+			[height / 10, width / 10] // Not dividing by 10 makes the max zoomout small
 		];
 
 		map = L.map(mapElement, {
@@ -100,13 +118,6 @@
 		L.imageOverlay(ABSOLUTE_MAP_URL, bounds).addTo(map);
 
 		map.fitBounds(bounds);
-
-		const myCustomIcon = L.icon({
-			iconUrl: RED_DOT_URL,
-			iconSize: [30, 30],
-			iconAnchor: [15, 15],
-			popupAnchor: [0, -15]
-		});
 
 		// Export map to JSON
 		const saveConfig = async () => {
@@ -123,9 +134,8 @@
 					geoJson.properties.radius = layer.getRadius();
 				} else if (layer instanceof L.Marker) {
 					geoJson.properties.type = 'marker';
-					// Check if using the custom icon
-					if (layer.options.icon && layer.options.icon.options.iconUrl === RED_DOT_URL) {
-						geoJson.properties.isCustomIcon = true;
+					if (layer.options.icon) {
+						geoJson.properties.iconUrl = layer.options.icon.options.iconUrl;
 					}
 				}
 
@@ -138,7 +148,7 @@
 			};
 
 			const fileName = MAP_URL + '.json';
-			const response = await fetch('/configs', {
+			const response = await fetch('/configs/save', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -167,7 +177,11 @@
 					if (feature.properties.type === 'circle') {
 						return L.circle(latlng, { radius: feature.properties.radius });
 					} else {
-						const options = feature.properties.isCustomIcon ? { icon: myCustomIcon } : {};
+						let options = {};
+						if (feature.properties.iconUrl) {
+							const iconUrl = feature.properties.iconUrl;
+							options = { icon: customIcon(L, iconUrl) };
+						}
 						return L.marker(latlng, options);
 					}
 				},
@@ -192,11 +206,17 @@
 			layer.bindPopup(content).openPopup();
 		});
 
+		setCurrentIcon(L, DEFAULT_MARKER);
+
 		// Setup toolbar
 		const EditControl = (L.Control as any).extend({
 			options: { position: 'topleft', callback: null, kind: '', html: '', toolOptions: null },
 			onAdd: function (map: Map) {
-				const container = L.DomUtil.create('div', 'leaflet-control leaflet-bar');
+				const container = L.DomUtil.create(
+					'div',
+					'leaflet-control leaflet-bar leaflet-control-' + this.options.kind
+				);
+
 				const link = L.DomUtil.create('a', '', container);
 				link.href = '#';
 				link.innerHTML = this.options.html;
@@ -234,12 +254,78 @@
 			map.addControl(new ControlClass());
 		};
 
-		addControl('marker', '🖈', 'startMarker');
-		addControl('circle', '⬤', 'startCircle');
-		addControl('marker2', '<img src="' + RED_DOT_URL + '" style="width:12px">', 'startMarker', {
-			icon: myCustomIcon
+		const startSelectedMarker = () => {
+			(map as any).editTools.startMarker(null, { icon: currentMarkerIcon });
+		};
+
+		addControl(
+			'marker-selected',
+			'<img src="' + currentMarkerIconUrl + '" style="width:12px">',
+			startSelectedMarker
+		);
+
+		let markers: string[] = [];
+		try {
+			const markerResponse = await fetch('/markers/all');
+			const markerData = await markerResponse.json();
+			markers = markerData.markers;
+		} catch (error) {
+			console.error('Error fetching markers:', error);
+		}
+
+		const MarkerSelectorControl = (L.Control as any).extend({
+			options: { position: 'topleft' },
+			onAdd: function () {
+				const container = L.DomUtil.create(
+					'div',
+					'leaflet-control leaflet-bar marker-selector-control'
+				);
+
+				const mainButton = L.DomUtil.create('a', 'marker-selector-button', container);
+				mainButton.href = '#';
+				mainButton.innerHTML =
+					'<img id="current-marker-icon" alt="Selected Marker" src="' +
+					DEFAULT_MARKER +
+					'" style="width:12px">';
+				L.DomEvent.on(mainButton, 'click', L.DomEvent.stop);
+
+				const menu = L.DomUtil.create('div', 'marker-selector-menu', container);
+
+				L.DomEvent.disableScrollPropagation(menu);
+				L.DomEvent.disableClickPropagation(menu);
+
+				const setMarkerClickHandle = (url: string, item: HTMLAnchorElement) => {
+					L.DomEvent.on(item, 'click', L.DomEvent.stop).on(item, 'click', () => {
+						setCurrentIcon(L, url);
+						(document.getElementById('current-marker-icon') as HTMLImageElement).src = url;
+						(
+							document.querySelector('.leaflet-control-marker-selected a img') as HTMLImageElement
+						).src = url;
+					});
+				};
+
+				markers.forEach((filename) => {
+					const iconUrl = '/data/markers/' + filename;
+					const item = L.DomUtil.create('a', 'marker-menu-item', menu);
+					item.href = '#';
+					item.innerHTML = `<img alt="${filename}" src="${iconUrl}" style="width:20px; height: 20px;">`;
+					item.title = filename;
+
+					setMarkerClickHandle(iconUrl, item);
+				});
+
+				const defaultItem = L.DomUtil.create('a', 'marker-menu-item', menu);
+				defaultItem.href = '#';
+				defaultItem.innerHTML = `<img alt="Default marker" src="${DEFAULT_MARKER}" style="width:20px; height: 20px;">`;
+				defaultItem.title = 'Default marker';
+
+				setMarkerClickHandle(DEFAULT_MARKER, defaultItem);
+				return container;
+			}
 		});
 
+		map.addControl(new MarkerSelectorControl());
+		addControl('circle', '⬤', 'startCircle');
 		addControl('save', '💾', saveConfig);
 	});
 
@@ -253,6 +339,7 @@
 </main>
 
 <style>
+	/* Map component */
 	main div {
 		height: 800px;
 		width: 100%;
@@ -270,5 +357,62 @@
 		resize: vertical;
 		padding: 5px;
 		border: 1px solid #ccc;
+	}
+	/* Marker selector main button */
+	:global(.marker-selector-control) {
+		position: relative;
+		z-index: 1000;
+		width: 30px;
+		height: 30px;
+		padding: 0;
+		margin-bottom: 5px;
+	}
+	/* The currently selected marker button */
+	:global(.marker-selector-button) {
+		width: 30px;
+		height: 30px;
+		line-height: 30px;
+		text-align: center;
+		border-radius: 4px;
+		background-color: white;
+		border: 2px solid rgba(0, 0, 0, 0.2);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	/* Hidden marker selection menu */
+	:global(.marker-selector-menu) {
+		display: none;
+		position: absolute;
+		top: 30px;
+		left: 0;
+		width: 200px;
+		max-height: 200px;
+		overflow-y: auto;
+		background-color: white;
+		border: 2px solid rgba(0, 0, 0, 0.2);
+		border-top: none;
+		box-shadow: 0 3px 14px rgba(0, 0, 0, 0.4);
+		padding: 5px;
+		box-sizing: border-box;
+	}
+	:global(.marker-selector-control:hover .marker-selector-menu),
+		/* On hover marker selection menu */
+	:global(.marker-selector-menu:hover) {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 5px;
+	}
+	:global(.marker-menu-item) {
+		flex: 0 0 calc(25% - 5px);
+		display: block;
+		padding: 5px;
+		border: 1px solid transparent;
+		border-radius: 3px;
+		text-align: center;
+	}
+	:global(.marker-menu-item:hover) {
+		background-color: #f4f4f4;
+		border-color: #ccc;
 	}
 </style>
