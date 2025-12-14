@@ -7,6 +7,17 @@
 	let map: Map;
 
 	const RED_DOT_URL = 'https://upload.wikimedia.org/wikipedia/commons/e/ec/RedDot.svg';
+	export let MAP_URL: string;
+	let ABSOLUTE_MAP_URL = '/data/maps/' + MAP_URL;
+
+	const getMapBounds = (url: string): Promise<{ width: number; height: number }> => {
+		return new Promise((resolve, reject) => {
+			const img = new Image();
+			img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+			img.onerror = (err) => reject(err);
+			img.src = url;
+		});
+	};
 
 	// Manage the marker popup content
 	const createPopupContent = (L: any, layer: any, text: string, isEditMode: boolean) => {
@@ -74,20 +85,19 @@
 		const L = await import('leaflet');
 		await import('leaflet-editable');
 
+		const { width, height } = await getMapBounds(ABSOLUTE_MAP_URL);
+
 		const bounds: LatLngBoundsExpression = [
 			[0, 0],
-			[607, 756]
+			[height / 10, width / 10]
 		];
 
 		map = L.map(mapElement, {
 			editable: true,
 			crs: L.CRS.Simple
-		}).setView([300, 378], 0);
+		});
 
-		L.imageOverlay(
-			'https://upload.wikimedia.org/wikipedia/commons/b/bb/Mayor_of_London_constituency_results_2000.svg',
-			bounds
-		).addTo(map);
+		L.imageOverlay(ABSOLUTE_MAP_URL, bounds).addTo(map);
 
 		map.fitBounds(bounds);
 
@@ -99,7 +109,7 @@
 		});
 
 		// Export map to JSON
-		const saveToDatabase = async () => {
+		const saveConfig = async () => {
 			const features: any[] = [];
 
 			(map as any).editTools.featuresLayer.eachLayer((layer: any) => {
@@ -127,17 +137,32 @@
 				features: features
 			};
 
-			console.log('Saving to server:', JSON.stringify(featureCollection));
+			const fileName = MAP_URL + '.json';
+			const response = await fetch('/configs', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					filename: fileName,
+					content: featureCollection
+				})
+			});
+
+			if (response.ok) {
+				console.log(`Saved ${fileName} successfully!`);
+			} else {
+				const errText = await response.text();
+				console.error(errText);
+				alert('Failed to save.');
+			}
 		};
 
 		// Import from JSON
-		const loadFromDatabase = async () => {
-			// Temporary local storage
-			const raw = localStorage.getItem('geojson-demo-data');
-			if (!raw) return;
-			const data = JSON.parse(raw);
+		const loadConfig = async () => {
+			const response = await fetch('/data/configs/' + MAP_URL + '.json');
+			if (!response.ok) return;
+			const config = await response.json();
 
-			L.geoJSON(data, {
+			L.geoJSON(config, {
 				pointToLayer: (feature, latlng) => {
 					if (feature.properties.type === 'circle') {
 						return L.circle(latlng, { radius: feature.properties.radius });
@@ -154,9 +179,12 @@
 					layer.bindPopup(content);
 
 					layer.addTo((map as any).editTools.featuresLayer);
+					layer.enableEdit();
 				}
 			});
 		};
+
+		await loadConfig();
 
 		map.on('editable:drawing:commit', (e: any) => {
 			const layer = e.layer;
@@ -212,7 +240,7 @@
 			icon: myCustomIcon
 		});
 
-		addControl('save', '💾', saveToDatabase);
+		addControl('save', '💾', saveConfig);
 	});
 
 	onDestroy(() => {
