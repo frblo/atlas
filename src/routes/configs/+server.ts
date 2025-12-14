@@ -1,18 +1,22 @@
 // API route to be able to save configs on the server
-import { json } from '@sveltejs/kit';
+import { json, type RequestEvent } from '@sveltejs/kit';
 import fs from 'fs/promises';
 import path from 'path';
 
-export async function POST({ request }: any) {
+const getTargetDir = () => path.join(process.cwd(), 'data', 'configs');
+
+export async function POST({ request }: RequestEvent) {
     try {
+        const targetDir = getTargetDir();
+        await fs.mkdir(targetDir, { recursive: true });
+
         const { filename, content } = await request.json();
 
         if (!filename || !content) {
             return json({ success: false, error: 'Missing filename or content' }, { status: 400 });
         }
 
-        const safeFilename = path.basename(filename);
-        const filePath = path.resolve(`data/configs/${safeFilename}`);
+        const filePath = path.join(targetDir, filename);
 
         await fs.writeFile(filePath, JSON.stringify(content, null, 2), 'utf-8');
 

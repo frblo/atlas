@@ -1,3 +1,4 @@
+import type { RequestEvent } from '@sveltejs/kit';
 import { writeFile, mkdir, readdir } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -22,20 +23,25 @@ export async function load() {
 }
 
 export const actions = {
-    default: async ({ request }: any) => {
-        const formData = await request.formData();
-        const uploadedFile = formData?.get('file') as File;
+    default: async ({ request }: RequestEvent) => {
+        try {
+            const formData = await request.formData();
+            const uploadedFile = formData?.get('file') as File;
 
-        if (!uploadedFile) {
-            return { success: false, error: 'No file uploaded' };
+            if (!uploadedFile) {
+                return { success: false, error: 'No file uploaded' };
+            }
+
+            const targetDir = getTargetDir();
+            const filename = path.join(targetDir, uploadedFile.name);
+
+            await mkdir(targetDir, { recursive: true });
+            await writeFile(filename, Buffer.from(await uploadedFile.arrayBuffer()));
+
+            return { success: true };
+        } catch (error) {
+            console.error('Error saving file:', error);
+            return { success: false };
         }
-
-        const targetDir = getTargetDir();
-        const filename = path.join(targetDir, uploadedFile.name);
-
-        await mkdir(targetDir, { recursive: true });
-        await writeFile(filename, Buffer.from(await uploadedFile.arrayBuffer()));
-
-        return { success: true };
     }
 };

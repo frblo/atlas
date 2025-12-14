@@ -7,8 +7,8 @@
 	let map: Map;
 
 	const RED_DOT_URL = 'https://upload.wikimedia.org/wikipedia/commons/e/ec/RedDot.svg';
-	export let MAP_URL;
-	let ABSOLUTE_MAP_URL = '../../../../data/maps/' + MAP_URL;
+	export let MAP_URL: string;
+	let ABSOLUTE_MAP_URL = '/data/maps/' + MAP_URL;
 
 	const getMapBounds = (url: string): Promise<{ width: number; height: number }> => {
 		return new Promise((resolve, reject) => {
@@ -158,11 +158,11 @@
 
 		// Import from JSON
 		const loadConfig = async () => {
-			const raw = await fetch('/data/configs/' + MAP_URL + '.json');
-			if (!raw.ok) return;
-			const data = await raw.json();
+			const response = await fetch('/data/configs/' + MAP_URL + '.json');
+			if (!response.ok) return;
+			const config = await response.json();
 
-			L.geoJSON(data, {
+			L.geoJSON(config, {
 				pointToLayer: (feature, latlng) => {
 					if (feature.properties.type === 'circle') {
 						return L.circle(latlng, { radius: feature.properties.radius });

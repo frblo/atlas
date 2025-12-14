@@ -24,7 +24,7 @@
 	<ul>
 		{#each data.maps as mapName}
 			<a href="/maps/{mapName}">
-				<img src="../../../data/maps/{mapName}" width="10%" alt="Map" />
+				<img src="/data/maps/{mapName}" width="10%" alt="Map" />
 				<p>{mapName}</p>
 			</a>
 		{/each}
