@@ -109,7 +109,7 @@
 		});
 
 		// Export map to JSON
-		const saveToDatabase = async () => {
+		const saveConfig = async () => {
 			const features: any[] = [];
 
 			(map as any).editTools.featuresLayer.eachLayer((layer: any) => {
@@ -137,13 +137,29 @@
 				features: features
 			};
 
-			console.log('Saving to server:', JSON.stringify(featureCollection));
+			const fileName = MAP_URL + '.json';
+			const response = await fetch('/configs', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
+					filename: fileName,
+					content: featureCollection
+				})
+			});
+
+			if (response.ok) {
+				console.log(`Saved ${fileName} successfully!`);
+			} else {
+				const errText = await response.text();
+				console.error(errText);
+				alert('Failed to save.');
+			}
 		};
 
 		// Import from JSON
 		const loadConfig = async () => {
 			const raw = await fetch('/data/configs/' + MAP_URL + '.json');
-			if (!raw) return;
+			if (!raw.ok) return;
 			const data = await raw.json();
 
 			L.geoJSON(data, {
@@ -163,6 +179,7 @@
 					layer.bindPopup(content);
 
 					layer.addTo((map as any).editTools.featuresLayer);
+					layer.enableEdit();
 				}
 			});
 		};
@@ -223,7 +240,7 @@
 			icon: myCustomIcon
 		});
 
-		addControl('save', '💾', saveToDatabase);
+		addControl('save', '💾', saveConfig);
 	});
 
 	onDestroy(() => {
