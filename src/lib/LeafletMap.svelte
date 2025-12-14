@@ -6,7 +6,6 @@
 	let mapElement: HTMLElement;
 	let map: Map;
 
-	const RED_DOT_URL = 'https://upload.wikimedia.org/wikipedia/commons/e/ec/RedDot.svg';
 	export let MAP_URL: string;
 	let ABSOLUTE_MAP_URL = '/data/maps/' + MAP_URL;
 
@@ -101,12 +100,14 @@
 
 		map.fitBounds(bounds);
 
-		const myCustomIcon = L.icon({
-			iconUrl: RED_DOT_URL,
-			iconSize: [30, 30],
-			iconAnchor: [15, 15],
-			popupAnchor: [0, -15]
-		});
+		function customIcon(iconUrl: string) {
+			return L.icon({
+				iconUrl: iconUrl,
+				iconSize: [30, 30],
+				iconAnchor: [15, 15],
+				popupAnchor: [0, -15]
+			});
+		}
 
 		// Export map to JSON
 		const saveConfig = async () => {
@@ -123,9 +124,8 @@
 					geoJson.properties.radius = layer.getRadius();
 				} else if (layer instanceof L.Marker) {
 					geoJson.properties.type = 'marker';
-					// Check if using the custom icon
-					if (layer.options.icon && layer.options.icon.options.iconUrl === RED_DOT_URL) {
-						geoJson.properties.isCustomIcon = true;
+					if (layer.options.icon) {
+						geoJson.properties.iconUrl = layer.options.icon.options.iconUrl;
 					}
 				}
 
@@ -167,7 +167,11 @@
 					if (feature.properties.type === 'circle') {
 						return L.circle(latlng, { radius: feature.properties.radius });
 					} else {
-						const options = feature.properties.isCustomIcon ? { icon: myCustomIcon } : {};
+						let options = {};
+						if (feature.properties.iconUrl) {
+							const iconUrl = feature.properties.iconUrl;
+							options = { icon: customIcon(iconUrl) };
+						}
 						return L.marker(latlng, options);
 					}
 				},
@@ -241,6 +245,9 @@
 		});
 
 		addControl('save', '💾', saveConfig);
+
+		let markers = await fetch('/markers/all');
+		console.log(await markers.json());
 	});
 
 	onDestroy(() => {
