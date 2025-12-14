@@ -26,7 +26,7 @@ export const actions = {
     default: async ({ request }: RequestEvent) => {
         try {
             const formData = await request.formData();
-            const uploadedFile = formData?.get('file') as File;
+            const uploadedFile = formData.get('file') as File;
 
             if (!uploadedFile) {
                 return { success: false, error: 'No file uploaded' };

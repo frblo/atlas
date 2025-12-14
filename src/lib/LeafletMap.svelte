@@ -264,9 +264,14 @@
 			startSelectedMarker
 		);
 
-		const markerResponse = await fetch('/markers/all');
-		const markerData = await markerResponse.json();
-		const markers: [string] = markerData.markers;
+		let markers: string[] = [];
+		try {
+			const markerResponse = await fetch('/markers/all');
+			const markerData = await markerResponse.json();
+			markers = markerData.markers;
+		} catch (error) {
+			console.error('Error fetching markers:', error);
+		}
 
 		const MarkerSelectorControl = (L.Control as any).extend({
 			options: { position: 'topleft' },
@@ -289,6 +294,16 @@
 				L.DomEvent.disableScrollPropagation(menu);
 				L.DomEvent.disableClickPropagation(menu);
 
+				const setMarkerClickHandle = (url: string, item: HTMLAnchorElement) => {
+					L.DomEvent.on(item, 'click', L.DomEvent.stop).on(item, 'click', () => {
+						setCurrentIcon(L, url);
+						(document.getElementById('current-marker-icon') as HTMLImageElement).src = url;
+						(
+							document.querySelector('.leaflet-control-marker-selected a img') as HTMLImageElement
+						).src = url;
+					});
+				};
+
 				markers.forEach((filename) => {
 					const iconUrl = '/data/markers/' + filename;
 					const item = L.DomUtil.create('a', 'marker-menu-item', menu);
@@ -296,13 +311,7 @@
 					item.innerHTML = `<img alt="${filename}" src="${iconUrl}" style="width:20px; height: 20px;">`;
 					item.title = filename;
 
-					L.DomEvent.on(item, 'click', L.DomEvent.stop).on(item, 'click', () => {
-						setCurrentIcon(L, iconUrl);
-						(document.getElementById('current-marker-icon') as HTMLImageElement).src = iconUrl;
-						(
-							document.querySelector('.leaflet-control-marker-selected a img') as HTMLImageElement
-						).src = iconUrl;
-					});
+					setMarkerClickHandle(iconUrl, item);
 				});
 
 				const defaultItem = L.DomUtil.create('a', 'marker-menu-item', menu);
@@ -310,14 +319,7 @@
 				defaultItem.innerHTML = `<img alt="Default marker" src="${DEFAULT_MARKER}" style="width:20px; height: 20px;">`;
 				defaultItem.title = 'Default marker';
 
-				L.DomEvent.on(defaultItem, 'click', L.DomEvent.stop).on(defaultItem, 'click', () => {
-					setCurrentIcon(L, DEFAULT_MARKER);
-					(document.getElementById('current-marker-icon') as HTMLImageElement).src = DEFAULT_MARKER;
-					(
-						document.querySelector('.leaflet-control-marker-selected a img') as HTMLImageElement
-					).src = DEFAULT_MARKER;
-				});
-
+				setMarkerClickHandle(DEFAULT_MARKER, defaultItem);
 				return container;
 			}
 		});
