@@ -3,6 +3,10 @@
 	export let form;
 </script>
 
+<head>
+	<title>Markers - Atlas</title>
+</head>
+
 <h1>Upload marker</h1>
 
 <form method="POST" enctype="multipart/form-data">

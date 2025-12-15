@@ -3,11 +3,15 @@
 	export let form;
 </script>
 
+<head>
+	<title>Maps - Atlas</title>
+</head>
+
 <h1>Upload map</h1>
 
 <form method="POST" enctype="multipart/form-data">
 	<input type="file" name="file" required />
-	<button type="submit">Upload Map</button>
+	<button type="submit">Upload map</button>
 </form>
 
 {#if form?.success}
