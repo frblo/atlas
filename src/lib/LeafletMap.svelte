@@ -341,9 +341,9 @@
 <style>
 	/* Map component */
 	main div {
-		height: 800px;
+		height: 100vh;
 		width: 100%;
-		background-color: #eee;
+		background-color: #bfbfbf;
 	}
 	:global(.leaflet-bar a) {
 		text-decoration: none;

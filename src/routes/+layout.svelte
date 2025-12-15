@@ -12,3 +12,12 @@
 <Navbar />
 
 {@render children()}
+
+<style>
+	:global(body) {
+		margin: 0;
+		padding: 0;
+		background-color: #bfbfbf;
+		height: 100%;
+	}
+</style>

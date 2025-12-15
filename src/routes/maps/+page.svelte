@@ -3,34 +3,42 @@
 	export let form;
 </script>
 
-<head>
+<svelte:head>
 	<title>Maps - Atlas</title>
-</head>
+</svelte:head>
 
-<h1>Upload map</h1>
+<main>
+	<h1>Upload map</h1>
 
-<form method="POST" enctype="multipart/form-data">
-	<input type="file" name="file" required />
-	<button type="submit">Upload map</button>
-</form>
+	<form method="POST" enctype="multipart/form-data">
+		<input type="file" name="file" required />
+		<button type="submit">Upload map</button>
+	</form>
 
-{#if form?.success}
-	<p style="color: green;">Upload successful!</p>
-{/if}
+	{#if form?.success}
+		<p style="color: green;">Upload successful!</p>
+	{/if}
 
-<hr />
+	<hr />
 
-<h2>Available Maps</h2>
+	<h2>Available Maps</h2>
 
-{#if data.maps.length === 0}
-	<p>No maps uploaded yet.</p>
-{:else}
-	<ul>
-		{#each data.maps as mapName}
-			<a href="/maps/{mapName}">
-				<img src="/data/maps/{mapName}" width="10%" alt="Map" />
-				<p>{mapName}</p>
-			</a>
-		{/each}
-	</ul>
-{/if}
+	{#if data.maps.length === 0}
+		<p>No maps uploaded yet.</p>
+	{:else}
+		<ul>
+			{#each data.maps as mapName}
+				<a href="/maps/{mapName}">
+					<img src="/data/maps/{mapName}" width="10%" alt="Map" />
+					<p>{mapName}</p>
+				</a>
+			{/each}
+		</ul>
+	{/if}
+</main>
+
+<style>
+	main {
+		margin: 1em;
+	}
+</style>
