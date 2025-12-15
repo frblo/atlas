@@ -341,7 +341,7 @@
 <style>
 	/* Map component */
 	main div {
-		height: 100vh;
+		height: calc(100vh - 85px); /* Dirty trick. 85px is navbar height */
 		width: 100%;
 		background-color: #bfbfbf;
 	}
