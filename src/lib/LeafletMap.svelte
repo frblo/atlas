@@ -341,9 +341,9 @@
 <style>
 	/* Map component */
 	main div {
-		height: 800px;
+		height: calc(100vh - 85px); /* Dirty trick. 85px is navbar height */
 		width: 100%;
-		background-color: #eee;
+		background-color: #f7f7f7;
 	}
 	:global(.leaflet-bar a) {
 		text-decoration: none;

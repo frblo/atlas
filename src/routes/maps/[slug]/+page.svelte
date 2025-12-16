@@ -3,7 +3,8 @@
 	import LeafletMap from '$lib/LeafletMap.svelte';
 </script>
 
-<main>
-	<h1>{data.slug}</h1>
-	<LeafletMap MAP_URL={data.slug} />
-</main>
+<svelte:head>
+	<title>{data.slug} - Atlas</title>
+</svelte:head>
+
+<LeafletMap MAP_URL={data.slug} />
