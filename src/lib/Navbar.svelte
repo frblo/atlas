@@ -31,6 +31,7 @@
 		font-size: 1.1em;
 		padding: 5px 10px;
 		transition: color 0.2s;
+		font-family: 'Merriweather', serif;
 	}
 
 	a:hover {

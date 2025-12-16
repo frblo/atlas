@@ -343,7 +343,7 @@
 	main div {
 		height: calc(100vh - 85px); /* Dirty trick. 85px is navbar height */
 		width: 100%;
-		background-color: #bfbfbf;
+		background-color: #f7f7f7;
 	}
 	:global(.leaflet-bar a) {
 		text-decoration: none;
