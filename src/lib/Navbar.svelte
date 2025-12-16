@@ -1,7 +1,11 @@
+<script lang="ts">
+	import favicon from '$lib/assets/favicon.svg';
+</script>
+
 <nav>
 	<a href="/maps">Maps</a>
 	<a href="/">
-		<img src="/src/lib/assets/favicon.svg" height="50" alt="Logo" />
+		<img src={favicon} height="50" alt="Logo" />
 	</a>
 	<a href="/markers">Markers</a>
 </nav>
