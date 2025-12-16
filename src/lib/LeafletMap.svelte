@@ -2,6 +2,7 @@
 	import type { LatLngBoundsExpression, Map } from 'leaflet';
 	import { onMount, onDestroy } from 'svelte';
 	import 'leaflet/dist/leaflet.css';
+	import { browser } from '$app/environment';
 
 	let mapElement: HTMLElement;
 	let map: Map;
@@ -63,6 +64,7 @@
 				const newText = textarea.value;
 				(layer as any).popupText = newText;
 				layer.setPopupContent(createPopupContent(L, layer, newText, false));
+				unsavedChanges = true;
 			});
 
 			// Cancel logic
@@ -97,6 +99,13 @@
 			});
 		}
 		return container;
+	};
+
+	let unsavedChanges = false;
+	const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+		if (unsavedChanges) {
+			e.preventDefault();
+		}
 	};
 
 	onMount(async () => {
@@ -159,6 +168,7 @@
 
 			if (response.ok) {
 				console.log(`Saved ${fileName} successfully!`);
+				unsavedChanges = false;
 			} else {
 				const errText = await response.text();
 				console.error(errText);
@@ -204,6 +214,15 @@
 			const layer = e.layer;
 			const content = createPopupContent(L, layer, '', true);
 			layer.bindPopup(content).openPopup();
+			unsavedChanges = true;
+		});
+
+		map.on('editable:dragend', () => {
+			unsavedChanges = true;
+		});
+
+		map.on('editable:vertex:dragend', () => {
+			unsavedChanges = true;
 		});
 
 		setCurrentIcon(L, DEFAULT_MARKER);
@@ -327,9 +346,15 @@
 		map.addControl(new MarkerSelectorControl());
 		addControl('circle', '⬤', 'startCircle');
 		addControl('save', '💾', saveConfig);
+
+		window.addEventListener('beforeunload', handleBeforeUnload);
 	});
 
 	onDestroy(() => {
+		if (browser) {
+			// To handle SPA routing
+			window.removeEventListener('beforeunload', handleBeforeUnload);
+		}
 		if (map) map.remove();
 	});
 </script>
