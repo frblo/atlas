@@ -1,19 +1,21 @@
 <script lang="ts">
 	export let data;
 	export let form;
+	const type = 'Map';
+	const lowerType = type.toLowerCase();
 </script>
 
 <svelte:head>
-	<title>Maps - Atlas</title>
+	<title>{type}s - Atlas</title>
 </svelte:head>
 
 <main>
 	<section class="upload-section">
-		<h1>Upload map</h1>
+		<h1>Upload {lowerType}</h1>
 
 		<form method="POST" enctype="multipart/form-data" class="upload-form">
 			<input type="file" name="file" required class="file-input" />
-			<button type="submit" class="upload-btn">Upload map</button>
+			<button type="submit" class="upload-btn">Upload {lowerType}</button>
 		</form>
 
 		{#if form?.success}
@@ -24,19 +26,19 @@
 	<hr />
 
 	<section class="gallery-section">
-		<h2>Available Maps</h2>
+		<h2>Available {lowerType}s</h2>
 
-		{#if data.maps.length === 0}
-			<p class="empty-state">No maps uploaded yet.</p>
+		{#if data.files.length === 0}
+			<p class="empty-state">No {lowerType}s uploaded yet.</p>
 		{:else}
-			<div class="map-grid">
-				{#each data.maps as mapName}
-					<a href="/maps/{mapName}" class="map-card">
+			<div class="item-grid">
+				{#each data.files as fileName}
+					<a href="/{lowerType}s/{fileName}" class="item-card">
 						<div class="image-wrapper">
-							<img src="/data/maps/{mapName}" alt="Map of {mapName}" loading="lazy" />
+							<img src="/data/{lowerType}s/{fileName}" alt="{type} of {fileName}" loading="lazy" />
 						</div>
 						<div class="card-content">
-							<p>{mapName}</p>
+							<p>{fileName}</p>
 						</div>
 					</a>
 				{/each}
@@ -110,13 +112,13 @@
 		border: 1px solid #c3e6cb;
 	}
 
-	.map-grid {
+	.item-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
 		gap: 1.5rem;
 	}
 
-	.map-card {
+	.item-card {
 		display: flex;
 		flex-direction: column;
 		background: white;
@@ -131,7 +133,7 @@
 		border: 1px solid #eaeaea;
 	}
 
-	.map-card:hover {
+	.item-card:hover {
 		transform: translateY(-4px);
 		box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
 	}
@@ -143,14 +145,14 @@
 		overflow: hidden;
 	}
 
-	.map-card img {
+	.item-card img {
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
 		transition: transform 0.3s ease;
 	}
 
-	.map-card:hover img {
+	.item-card:hover img {
 		transform: scale(1.05);
 	}
 
