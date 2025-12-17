@@ -2,6 +2,7 @@
 	export let data;
 	export let form;
 	export let type;
+	export let linkedCard;
 	const lowerType = type.toLowerCase();
 </script>
 
@@ -33,14 +34,23 @@
 		{:else}
 			<div class="item-grid">
 				{#each data.files as fileName}
-					<a href="/{lowerType}s/{fileName}" class="item-card">
+					<svelte:element
+						this={linkedCard ? 'a' : 'div'}
+						href={linkedCard ? `/${lowerType}s/${fileName}` : undefined}
+						class="item-card"
+					>
 						<div class="image-wrapper">
-							<img src="/data/{lowerType}s/{fileName}" alt="{type} of {fileName}" loading="lazy" />
+							<img
+								src={`/data/${lowerType}s/${fileName}`}
+								alt="{type} of {fileName}"
+								loading="lazy"
+							/>
 						</div>
+
 						<div class="card-content">
 							<p>{fileName}</p>
 						</div>
-					</a>
+					</svelte:element>
 				{/each}
 			</div>
 		{/if}

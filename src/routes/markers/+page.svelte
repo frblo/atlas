@@ -5,4 +5,4 @@
 	import FilePage from '$lib/FilePage.svelte';
 </script>
 
-<FilePage {data} {form} {type} />
+<FilePage {data} {form} {type} linkedCard={false} />
