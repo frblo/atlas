@@ -1,0 +1,10 @@
+services:
+  atlas:
+    image: atlas:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - atlas-data:/app/data
+
+volumes:
+  atlas-data:
