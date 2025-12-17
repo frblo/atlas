@@ -15,6 +15,6 @@ export async function GET() {
         return json({ markers: markerFiles });
     } catch (error) {
         console.error('Failed to get files:', error);
-        return json({ error: 'Failed to get files' }, { status: 500 });
+        return json({ markers: [] });
     }
 }
