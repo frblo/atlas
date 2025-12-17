@@ -2,21 +2,23 @@ import type { RequestEvent } from '@sveltejs/kit';
 import { writeFile, mkdir, readdir } from 'node:fs/promises';
 import path from 'node:path';
 
-const getTargetDir = () => path.join(process.cwd(), 'data', 'markers');
+function getTargetDir(type: string) {
+    return path.join(process.cwd(), 'data', type);
+}
 
 export async function load() {
-    const targetDir = getTargetDir();
+    const targetDir = getTargetDir('markers');
 
     try {
         const files = await readdir(targetDir);
-        const markerFiles = files.filter(file => !file.startsWith('.'));
+        const fileNames = files.filter(file => !file.startsWith('.'));
 
         return {
-            markers: markerFiles
+            files: fileNames
         };
     } catch (err: any) {
         if (err.code === 'ENOENT') {
-            return { markers: [] };
+            return { files: [] };
         }
         throw err;
     }
@@ -26,13 +28,13 @@ export const actions = {
     default: async ({ request }: RequestEvent) => {
         try {
             const formData = await request.formData();
-            const uploadedFile = formData.get('file') as File;
+            const uploadedFile = formData?.get('file') as File;
 
             if (!uploadedFile) {
                 return { success: false, error: 'No file uploaded' };
             }
 
-            const targetDir = getTargetDir();
+            const targetDir = getTargetDir('markers');
             const filename = path.join(targetDir, uploadedFile.name);
 
             await mkdir(targetDir, { recursive: true });
