@@ -1,48 +1,28 @@
 import type { RequestEvent } from '@sveltejs/kit';
-import { writeFile, mkdir, readdir } from 'node:fs/promises';
-import path from 'node:path';
+import { listFiles, saveUploadedFile } from '$lib/filepage-server';
 
-function getTargetDir(type: string) {
-    return path.join(process.cwd(), 'data', type);
-}
+const TYPE = 'markers';
 
 export async function load() {
-    const targetDir = getTargetDir('markers');
-
-    try {
-        const files = await readdir(targetDir);
-        const fileNames = files.filter(file => !file.startsWith('.'));
-
-        return {
-            files: fileNames
-        };
-    } catch (err: any) {
-        if (err.code === 'ENOENT') {
-            return { files: [] };
-        }
-        throw err;
-    }
+    return {
+        files: await listFiles(TYPE)
+    };
 }
 
 export const actions = {
     default: async ({ request }: RequestEvent) => {
+        const formData = await request.formData();
+        const uploadedFile = formData.get('file') as File;
+
+        if (!uploadedFile) {
+            return { success: false, error: 'No file uploaded' };
+        }
+
         try {
-            const formData = await request.formData();
-            const uploadedFile = formData?.get('file') as File;
-
-            if (!uploadedFile) {
-                return { success: false, error: 'No file uploaded' };
-            }
-
-            const targetDir = getTargetDir('markers');
-            const filename = path.join(targetDir, uploadedFile.name);
-
-            await mkdir(targetDir, { recursive: true });
-            await writeFile(filename, Buffer.from(await uploadedFile.arrayBuffer()));
-
+            await saveUploadedFile(TYPE, uploadedFile);
             return { success: true };
-        } catch (error) {
-            console.error('Error saving file:', error);
+        } catch (err) {
+            console.error(err);
             return { success: false };
         }
     }
