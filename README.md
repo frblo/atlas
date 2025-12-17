@@ -1,38 +1,41 @@
-# sv
+# Atlas
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+Atlas is a world building tool for creating interactive maps. It allows for loading in maps (as images) and then placing (moving and deleting) custom markers with writable text fields for world builders to create interactive maps of their worlds.
 
-## Creating a project
+Atlas runs without a database and/or user authentication. All files and data are saved locally.
 
-If you're seeing this, you've probably already done this step. Congrats!
+## Running
+
+> [!WARNING]
+> Atlas is only meant to be run on private networks. Atlas currently has vulnerabilities and little to no security measures. **Do not run** this on publically available networks.
+
+### Docker
+
+The recommended way to run Atlas is via Docker. Simply run
 
 ```sh
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
+docker-compose --file docker-compose.yml up
 ```
 
-## Developing
+to launch Atlas. This will create a volume called `atlas-data` where all files will be stored.
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+### npm
+
+Atlas can also be launched via npm by running
 
 ```sh
-npm run dev
-
-# or start the server and open the app in a new browser tab
+npm i
 npm run dev -- --open
 ```
 
-## Building
+which can be easier to use during development. This also allows for easier control over the `data` directory.
 
-To create a production version of your app:
+## Features
 
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+- Interactive maps
+    - Uploading and using maps of (pretty much) any image variety
+    - Interactive panning and zooming
+- Custom markers
+    - Pretty much any image variety
+- Placing, moving and removing markers on maps
+    - Writable popup text fields on every marker with html support
