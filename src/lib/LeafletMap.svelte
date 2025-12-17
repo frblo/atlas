@@ -156,7 +156,7 @@
 			};
 
 			const fileName = MAP_URL + '.json';
-			const response = await fetch('/configs/save', {
+			const response = await fetch('/data/configs/save', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -284,7 +284,7 @@
 
 		let markers: string[] = [];
 		try {
-			const markerResponse = await fetch('/markers/all');
+			const markerResponse = await fetch('/data/markers/all');
 			const markerData = await markerResponse.json();
 			markers = markerData.markers;
 		} catch (error) {
