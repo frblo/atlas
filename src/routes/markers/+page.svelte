@@ -31,14 +31,14 @@
 		{:else}
 			<div class="marker-grid">
 				{#each data.markers as markerName}
-					<a href="/markers/{markerName}" class="marker-card">
+					<div class="marker-card">
 						<div class="image-wrapper">
 							<img src="/data/markers/{markerName}" alt="Marker: {markerName}" loading="lazy" />
 						</div>
 						<div class="card-content">
 							<p>{markerName}</p>
 						</div>
-					</a>
+					</div>
 				{/each}
 			</div>
 		{/if}

@@ -1,9 +1,13 @@
+<script lang="ts">
+	import favicon from '$lib/assets/favicon.svg';
+</script>
+
 <svelte:head>
 	<title>Atlas</title>
 </svelte:head>
 
 <main>
-	<img src="/src/lib/assets/favicon.svg" height="300" alt="Logo" />
+	<img src={favicon} height="300" alt="Logo" />
 	<h1>Atlas</h1>
 </main>
 

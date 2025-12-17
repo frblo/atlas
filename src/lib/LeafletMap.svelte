@@ -3,14 +3,13 @@
 	import { onMount, onDestroy } from 'svelte';
 	import 'leaflet/dist/leaflet.css';
 	import { browser } from '$app/environment';
+	import DEFAULT_MARKER from '$lib/assets/default_marker.svg';
 
 	let mapElement: HTMLElement;
 	let map: Map;
 
 	export let MAP_URL: string;
 	let ABSOLUTE_MAP_URL = '/data/maps/' + MAP_URL;
-
-	const DEFAULT_MARKER = '/src/lib/assets/default_marker.svg';
 
 	let currentMarkerIconUrl: string = DEFAULT_MARKER;
 	let currentMarkerIcon: any = null;
