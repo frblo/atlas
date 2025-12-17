@@ -284,7 +284,7 @@
 
 		let markers: string[] = [];
 		try {
-			const markerResponse = await fetch('/markers/all');
+			const markerResponse = await fetch('/data/markers/all');
 			const markerData = await markerResponse.json();
 			markers = markerData.markers;
 		} catch (error) {
