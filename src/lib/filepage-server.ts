@@ -1,4 +1,4 @@
-import { writeFile, mkdir, readdir } from 'node:fs/promises';
+import { writeFile, mkdir, readdir, unlink } from 'node:fs/promises';
 import path from 'node:path';
 
 function getTargetDir(type: string) {
@@ -28,4 +28,21 @@ export async function saveUploadedFile(
 
 	await mkdir(targetDir, { recursive: true });
 	await writeFile(filename, Buffer.from(await file.arrayBuffer()));
+}
+
+export async function deleteFile(type: string, fileName: string) {
+	const targetDir = getTargetDir(type);
+	const filename = path.join(targetDir, fileName);
+
+	try {
+		await unlink(filename);
+
+
+		return true;
+	} catch (err: any) {
+		if (err.code === 'ENOENT') {
+			return false;
+		}
+		throw err;
+	}
 }

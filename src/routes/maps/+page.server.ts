@@ -1,5 +1,5 @@
-import type { RequestEvent } from '@sveltejs/kit';
-import { listFiles, saveUploadedFile } from '$lib/filepage-server';
+import { fail, type RequestEvent } from '@sveltejs/kit';
+import { deleteFile, listFiles, saveUploadedFile } from '$lib/filepage-server';
 
 const TYPE = 'maps';
 
@@ -10,7 +10,7 @@ export async function load() {
 }
 
 export const actions = {
-    default: async ({ request }: RequestEvent) => {
+    upload: async ({ request }: RequestEvent) => {
         const formData = await request.formData();
         const uploadedFile = formData.get('file') as File;
 
@@ -24,6 +24,25 @@ export const actions = {
         } catch (err) {
             console.error(err);
             return { success: false };
+        }
+    },
+
+    delete: async ({ request }: RequestEvent) => {
+        const formData = await request.formData();
+        const fileName = formData.get('fileName') as string;
+
+        if (!fileName) {
+            return fail(400, { missing: true });
+        }
+
+        try {
+            await deleteFile(TYPE, fileName);
+            await deleteFile("configs", fileName + ".json");
+
+            return { success: true };
+        } catch (err) {
+            console.error(err);
+            return fail(500, { error: 'Failed to delete file' });
         }
     }
 };

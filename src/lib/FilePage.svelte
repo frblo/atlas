@@ -1,9 +1,11 @@
 <script lang="ts">
+	import { enhance } from '$app/forms';
+
 	export let data;
 	export let form;
 	export let type;
-	export let linkedCard;
 	const lowerType = type.toLowerCase();
+	export let linkedCard;
 </script>
 
 <svelte:head>
@@ -14,13 +16,13 @@
 	<section class="upload-section">
 		<h1>Upload {lowerType}</h1>
 
-		<form method="POST" enctype="multipart/form-data" class="upload-form">
+		<form action="?/upload" method="POST" enctype="multipart/form-data" class="upload-form">
 			<input type="file" name="file" required class="file-input" />
 			<button type="submit" class="upload-btn">Upload {lowerType}</button>
 		</form>
 
 		{#if form?.success}
-			<div class="alert success">Upload successful!</div>
+			<div class="alert success">Action successful!</div>
 		{/if}
 	</section>
 
@@ -34,23 +36,52 @@
 		{:else}
 			<div class="item-grid">
 				{#each data.files as fileName}
-					<svelte:element
-						this={linkedCard ? 'a' : 'div'}
-						href={linkedCard ? `/${lowerType}s/${fileName}` : undefined}
-						class="item-card"
-					>
-						<div class="image-wrapper">
-							<img
-								src={`/data/${lowerType}s/${fileName}`}
-								alt="{type} of {fileName}"
-								loading="lazy"
-							/>
-						</div>
+					<div class="card-container">
+						<svelte:element
+							this={linkedCard ? 'a' : 'div'}
+							href={linkedCard ? `/${lowerType}s/${fileName}` : undefined}
+							class="item-card"
+						>
+							<div class="image-wrapper">
+								<img
+									src={`/data/${lowerType}s/${fileName}`}
+									alt="{type} of {fileName}"
+									loading="lazy"
+								/>
+							</div>
 
-						<div class="card-content">
-							<p>{fileName}</p>
-						</div>
-					</svelte:element>
+							<div class="card-content">
+								<p>{fileName}</p>
+							</div>
+						</svelte:element>
+
+						<form
+							action="?/delete"
+							method="POST"
+							class="delete-form"
+							use:enhance={() => {
+								return async ({ update }) => {
+									await update();
+								};
+							}}
+						>
+							<input type="hidden" name="fileName" value={fileName} />
+
+							<button
+								type="submit"
+								class="delete-btn"
+								aria-label="Delete {fileName}"
+								on:click={(e) => {
+									if (!confirm('Are you sure you want to delete this?')) {
+										e.preventDefault();
+										e.stopPropagation();
+									}
+								}}
+							>
+								&#128465;&#65039; <!-- Trash can emoji -->
+							</button>
+						</form>
+					</div>
 				{/each}
 			</div>
 		{/if}
@@ -128,6 +159,10 @@
 		gap: 1.5rem;
 	}
 
+	.card-container {
+		position: relative;
+	}
+
 	.item-card {
 		display: flex;
 		flex-direction: column;
@@ -182,5 +217,35 @@
 	.empty-state {
 		color: #666;
 		font-style: italic;
+	}
+
+	.delete-form {
+		position: absolute;
+		top: 8px;
+		right: 8px;
+		z-index: 10;
+	}
+
+	.delete-btn {
+		background-color: rgba(255, 255, 255, 0.9);
+		color: #d32f2f;
+		border: 1px solid #e0e0e0;
+		border-radius: 50%;
+		width: 32px;
+		height: 32px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		transition: all 0.2s ease;
+		box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+		padding: 0;
+	}
+
+	.delete-btn:hover {
+		background-color: #d32f2f;
+		color: white;
+		border-color: #b71c1c;
+		transform: scale(1.1);
 	}
 </style>
