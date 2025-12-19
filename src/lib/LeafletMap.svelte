@@ -9,7 +9,7 @@
 	let map: Map;
 
 	export let MAP_URL: string;
-	let ABSOLUTE_MAP_URL = '/data/maps/' + MAP_URL;
+	let ABSOLUTE_MAP_URL = '/data-api/maps/' + MAP_URL;
 
 	let currentMarkerIconUrl: string = DEFAULT_MARKER;
 	let currentMarkerIcon: any = null;
@@ -156,7 +156,7 @@
 			};
 
 			const fileName = MAP_URL + '.json';
-			const response = await fetch('/data/configs/save', {
+			const response = await fetch('/data-api/configs/save', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({
@@ -177,7 +177,7 @@
 
 		// Import from JSON
 		const loadConfig = async () => {
-			const response = await fetch('/data/configs/' + MAP_URL + '.json');
+			const response = await fetch('/data-api/configs/' + MAP_URL + '.json');
 			if (!response.ok) return;
 			const config = await response.json();
 
@@ -284,7 +284,7 @@
 
 		let markers: string[] = [];
 		try {
-			const markerResponse = await fetch('/data/markers/all');
+			const markerResponse = await fetch('/data-api/markers/all');
 			const markerData = await markerResponse.json();
 			markers = markerData.markers;
 		} catch (error) {
@@ -323,7 +323,7 @@
 				};
 
 				markers.forEach((filename) => {
-					const iconUrl = '/data/markers/' + filename;
+					const iconUrl = '/data-api/markers/' + filename;
 					const item = L.DomUtil.create('a', 'marker-menu-item', menu);
 					item.href = '#';
 					item.innerHTML = `<img alt="${filename}" src="${iconUrl}" style="width:20px; height: 20px;">`;

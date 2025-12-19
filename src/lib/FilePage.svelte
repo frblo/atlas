@@ -44,7 +44,7 @@
 						>
 							<div class="image-wrapper">
 								<img
-									src={`/data/${lowerType}s/${fileName}`}
+									src={`/data-api/${lowerType}s/${fileName}`}
 									alt="{type} of {fileName}"
 									loading="lazy"
 								/>
