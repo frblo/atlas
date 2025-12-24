@@ -1,6 +1,9 @@
 services:
   atlas:
     image: atlas:latest
+    environment:
+      - BODY_SIZE_LIMIT=Infinity
+
     build: .
     ports:
       - "3000:3000"
